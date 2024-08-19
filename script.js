@@ -4,43 +4,36 @@ const voiceDropdown = document.querySelector('[name="voice"]');
 const textInput = document.querySelector('[name="text"]');
 const speakButton = document.querySelector('#speak');
 const stopButton = document.querySelector('#stop');
+const options = document.querySelectorAll('[type="range"], [name="pitch"], [name="rate"]');
 
 function populateVoices() {
   voices = speechSynthesis.getVoices();
   const voiceOptions = voices
     .map(voice => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
     .join('');
-  voiceDropdown.innerHTML = `<select>${voiceOptions}</select>`;
+  voiceDropdown.innerHTML = voiceOptions; // Populate the dropdown correctly
 }
 
 function setVoice() {
   msg.voice = voices.find(voice => voice.name === voiceDropdown.value);
 }
 
-function toggle() {
+function toggle(startOver = true) {
   speechSynthesis.cancel();
-  speechSynthesis.speak(msg);
+  if (startOver) {
+    msg.text = textInput.value;
+    speechSynthesis.speak(msg);
+  }
 }
 
 function setOption() {
   msg[this.name] = this.value;
-  toggle();
 }
-
-const options = document.querySelectorAll('[type="range"], [name="pitch"], [name="rate"]');
 
 speechSynthesis.addEventListener('voiceschanged', populateVoices);
 populateVoices();
 
 voiceDropdown.addEventListener('change', setVoice);
-options.forEach(option => {
-  option.addEventListener('change', setOption);
-});
-textInput.addEventListener('input', () => {
-  msg.text = textInput.value;
-});
-
+options.forEach(option => option.addEventListener('change', setOption));
 speakButton.addEventListener('click', toggle);
-stopButton.addEventListener('click', () => {
-  speechSynthesis.cancel();
-});
+stopButton.addEventListener('click', () => toggle(false));
